@@ -3,6 +3,11 @@ package fr.agilecom.webrequest;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+/**
+ * 
+ * @author buboc
+ *
+ */
 public class AnnonceOccasionAuto {
 	
 	String anneeMiseEnCirculation = null;
