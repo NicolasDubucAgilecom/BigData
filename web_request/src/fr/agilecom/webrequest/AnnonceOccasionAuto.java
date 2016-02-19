@@ -3,6 +3,8 @@ package fr.agilecom.webrequest;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 /**
  * 
  * @author buboc
@@ -28,6 +30,7 @@ public class AnnonceOccasionAuto {
 	String vendeur = null;
 	String typeboite = null;
 	String ville = null;
+	String zz_status = null;
 	
 	public String getAnneeMiseEnCirculation() {
 		return anneeMiseEnCirculation;
@@ -187,6 +190,15 @@ public class AnnonceOccasionAuto {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return_str = StringEscapeUtils.unescapeHtml4(return_str);
+		
 		return return_str;
+	}
+	public String getZz_status() {
+		return zz_status;
+	}
+	public void setZz_status(String zz_status) {
+		this.zz_status = zz_status;
 	}
 }

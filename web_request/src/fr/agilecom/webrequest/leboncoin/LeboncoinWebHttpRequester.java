@@ -1,30 +1,33 @@
 package fr.agilecom.webrequest.leboncoin;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import fr.agilecom.webrequest.AnnonceOccasionAuto;
 import fr.agilecom.webrequest.HttpUrlConnectionReader;
+import fr.agilecom.webrequest.WebHttpRequester;
 
-public class LaunchRequestLeboncoin {
+public class LeboncoinWebHttpRequester implements WebHttpRequester {
+	
+	HashMap<String, AnnonceOccasionAuto> annouces = new HashMap<String, AnnonceOccasionAuto>();
 
-	public static void main(String[] args) throws Exception {
+	@Override
+	public void doRequest() throws JSONException {
 
-		String output_file = "result_leboncoin.out";
-		
-		if(args.length >= 1) {
-			output_file=args[0];
-		}
+//		String output_file = "result_leboncoin.out";
+//		
+//		if(args.length >= 1) {
+//			output_file=args[0];
+//		}
 		
 		// Recuperation de la liste des url des annonces leboncoin
-		SpecificLeboncoinMainrequestHttpUrlConnectionReader jhcr = new SpecificLeboncoinMainrequestHttpUrlConnectionReader(
+		LeboncoinUrlConnectionReader jhcr = new LeboncoinUrlConnectionReader(
 					"http://www.leboncoin.fr/voitures/offres/ile_de_france/?f=a&th=0",
 					".*<a href=\"..(.*).ca.*title=.*>",
 					"content-border",
@@ -39,19 +42,21 @@ public class LaunchRequestLeboncoin {
 		String htmlpage = null;
 		
 		// Creation du fichier de Sortie
-		PrintWriter writer = new PrintWriter(output_file);
-		writer.print(AnnonceOccasionAuto.printCsvHeader());
+//		PrintWriter writer = new PrintWriter(output_file);
+//		writer.print(AnnonceOccasionAuto.printCsvHeader());
 		
 		// Pour chaque annonce
 		while(it.hasNext()){
-			String announce_url = it.next();
-			//System.out.println(announce_url);
 			
-			// Anti DOS FW security :
-			Thread.sleep(500);
+			String announce_url = it.next();
+			AnnonceOccasionAuto annonce = new AnnonceOccasionAuto();
+						
+			// Anti DOS security :
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {}
 			
 			htmlpage=simpleHttp.read("http://"+announce_url, false);
-			//System.out.println(htmlpage);
 			
 			// Récupération des blocks contenant les informations :
 		    Pattern pattern = Pattern.compile(".*var utag_data = (\\{.*\\})</script>.*<div class=\"lbcParams criterias\">.*(<table>.*"
@@ -102,7 +107,7 @@ public class LaunchRequestLeboncoin {
 		    	matcher = pattern.matcher(table);
 		    	matches = matcher.matches();
 		    	if(!matches){
-		    		writer.println("Format XML (itemprop) non attendu. URL : " + announce_url);
+			    	annonce.setZz_status("Format XML (itemprop) non attendu. URL : " + announce_url);
 		    		continue;
 		    	}
 		    	String brand = matcher.group(1).trim();
@@ -115,7 +120,7 @@ public class LaunchRequestLeboncoin {
 //		    				"\nkilometres : " + kilometres + "\ncaburant : " + caburant + "\ntypeboite : " + typeboite +
 //		    				"\nprix : " + prix + "\ndepartement : " + departement + "\nville : " + ville + "(" + cp + ")."			
 //		    			);
-		    	AnnonceOccasionAuto annonce = new AnnonceOccasionAuto();
+		    	annonce = new AnnonceOccasionAuto();
 
 				annonce.setAnneeMiseEnCirculation(releaseDate);
 				annonce.setKilometrage(kilometres);
@@ -137,16 +142,26 @@ public class LaunchRequestLeboncoin {
 				annonce.setVendeur("");
 				annonce.setVille(ville);
 				
-				String csv_line = annonce.toCsvFormat();
-				writer.println(StringEscapeUtils.unescapeHtml4(csv_line));
-				
-				//writer.println(brand+";"+modele+";"+releaseDate+";"+kilometres+";"+caburant+";"+typeboite+";"+prix+";"+departement+";"+ville+";"+cp);
-		    	
+   	
 		    }else{
-		    	writer.println("Format XML (global) non attendu. URL : " + announce_url);
+		    	annonce.setZz_status("Format XML (global) non attendu. URL : " + announce_url);
 		    }
+		    String id = announce_url.substring(announce_url.lastIndexOf('/'), announce_url.indexOf(".htm"));
+		    System.out.println(id);
+		    annouces.put(id, annonce);
 		}//while
-		writer.flush();
-		writer.close();
+		
+		
+		
+//		writer.flush();
+//		writer.close();
+	}
+
+
+
+	@Override
+	public void getResult() {
+		// TODO Auto-generated method stub
+		
 	}
 }

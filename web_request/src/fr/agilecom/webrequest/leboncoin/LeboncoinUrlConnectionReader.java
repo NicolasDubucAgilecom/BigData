@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * @author alvin alexander, devdaily.com.
  *
  */
-public class SpecificLeboncoinMainrequestHttpUrlConnectionReader
+public class LeboncoinUrlConnectionReader
 {
 
 	private String url = null;
@@ -27,7 +27,7 @@ public class SpecificLeboncoinMainrequestHttpUrlConnectionReader
 	private String startAfter = null;
 	private int returnGroupItem=0;
 	
-  public SpecificLeboncoinMainrequestHttpUrlConnectionReader(String url, String filterregex, String startAfter, int returnGroupItem)
+  public LeboncoinUrlConnectionReader(String url, String filterregex, String startAfter, int returnGroupItem)
   {
     try
     {
@@ -46,7 +46,7 @@ public class SpecificLeboncoinMainrequestHttpUrlConnectionReader
     }
   }
  
-  public SpecificLeboncoinMainrequestHttpUrlConnectionReader(String url, String filterregex, String startAfter)
+  public LeboncoinUrlConnectionReader(String url, String filterregex, String startAfter)
   {
     try
     {
@@ -64,7 +64,7 @@ public class SpecificLeboncoinMainrequestHttpUrlConnectionReader
     }
   }
   
-  public SpecificLeboncoinMainrequestHttpUrlConnectionReader(String url, String filterregex)
+  public LeboncoinUrlConnectionReader(String url, String filterregex)
   {
     try
     {
