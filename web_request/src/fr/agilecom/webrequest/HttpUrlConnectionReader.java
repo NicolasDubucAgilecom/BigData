@@ -2,6 +2,7 @@ package fr.agilecom.webrequest;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -54,6 +55,7 @@ public class HttpUrlConnectionReader
 	  
 		 URL url = null;
 	    BufferedReader reader = null;
+	    InputStream is = null;
 	    StringBuilder stringBuilder;
 	 
 	    try
@@ -75,26 +77,29 @@ public class HttpUrlConnectionReader
 	    	// Cookies management :
 	    	
 	    	// read the output from the server
-	      reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-	      stringBuilder = new StringBuilder();
-	      
-	      String line = null;
-	      while ((line = reader.readLine()) != null)
-	      {
-	    	  if(markLF){
+	    	is = connection.getInputStream();
+	    	if(connection.getResponseCode() >= 400){
+	    		
+	    		System.out.println("HTTP Error code detected !!!!!!!!!!!!!!");
+	    		return null;
+	    	}
+	    	reader = new BufferedReader(new InputStreamReader(is));
 	    	
+	    	stringBuilder = new StringBuilder();
+	    	
+	    	String line = null;
+	    	while ((line = reader.readLine()) != null)
+	    	{
+	    		if(markLF){
 	    		  stringBuilder.append(line + "\n");
-	    	  }else{
-	    		  stringBuilder.append(line);
-	    	  }
-	      }
-	      //stringBuilder.append(line + "\n");
-	      return stringBuilder.toString();
-	      //return list;
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
+	    		}else{
+	    			stringBuilder.append(line);
+	    		}
+	    	}
+	    	return stringBuilder.toString();
+	    }catch (Exception e){
+	    	
+	    	e.printStackTrace();
 			throw e;
 		}
 		finally{

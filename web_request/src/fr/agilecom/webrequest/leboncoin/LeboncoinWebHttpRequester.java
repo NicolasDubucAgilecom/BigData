@@ -9,22 +9,16 @@ import java.util.regex.Pattern;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import fr.agilecom.webrequest.AnnonceOccasionAuto;
 import fr.agilecom.webrequest.HttpUrlConnectionReader;
 import fr.agilecom.webrequest.WebHttpRequester;
+import fr.agilecom.webrequester.bean.AnnonceOccasionAuto;
 
 public class LeboncoinWebHttpRequester implements WebHttpRequester {
 	
 	HashMap<String, AnnonceOccasionAuto> annouces = new HashMap<String, AnnonceOccasionAuto>();
 
 	@Override
-	public void doRequest() throws JSONException {
-
-//		String output_file = "result_leboncoin.out";
-//		
-//		if(args.length >= 1) {
-//			output_file=args[0];
-//		}
+	public void doRequest(int tempo) throws JSONException {
 		
 		// Recuperation de la liste des url des annonces leboncoin
 		LeboncoinUrlConnectionReader jhcr = new LeboncoinUrlConnectionReader(
@@ -53,7 +47,7 @@ public class LeboncoinWebHttpRequester implements WebHttpRequester {
 						
 			// Anti DOS security :
 			try {
-				Thread.sleep(500);
+				Thread.sleep(tempo);
 			} catch (InterruptedException e) {}
 			
 			htmlpage=simpleHttp.read("http://"+announce_url, false);
@@ -94,8 +88,6 @@ public class LeboncoinWebHttpRequester implements WebHttpRequester {
 		    	}
 		    	
 		    	String table = matcher.group(2);
-//		    	System.out.println(table);
-		    	
 		    	pattern = Pattern.compile("<table>.*<td itemprop=.brand.>(.*)"
 		    			+ "</td>.*<th>Modèle.*<td itemprop=.model.>(.*)</td>.*"
 		    			+ "<td itemprop=.releaseDate.>(.*)</td>.*<th>Kilom.*"
@@ -116,12 +108,9 @@ public class LeboncoinWebHttpRequester implements WebHttpRequester {
 		    	String kilometres = matcher.group(4).trim();
 		    	String caburant = matcher.group(5).trim();
 		    	String typeboite = matcher.group(6).trim();
-//		    	System.out.println("brand : " + brand + "\nmodele : " + modele + "\nreleaseDate : " + releaseDate +
-//		    				"\nkilometres : " + kilometres + "\ncaburant : " + caburant + "\ntypeboite : " + typeboite +
-//		    				"\nprix : " + prix + "\ndepartement : " + departement + "\nville : " + ville + "(" + cp + ")."			
-//		    			);
+		    	
 		    	annonce = new AnnonceOccasionAuto();
-
+		    	
 				annonce.setAnneeMiseEnCirculation(releaseDate);
 				annonce.setKilometrage(kilometres);
 				annonce.setCaburant(caburant);
@@ -146,9 +135,11 @@ public class LeboncoinWebHttpRequester implements WebHttpRequester {
 		    }else{
 		    	annonce.setZz_status("Format XML (global) non attendu. URL : " + announce_url);
 		    }
-		    String id = announce_url.substring(announce_url.lastIndexOf('/'), announce_url.indexOf(".htm"));
-		    System.out.println(id);
-		    annouces.put(id, annonce);
+		    String id = announce_url.substring(announce_url.lastIndexOf('/')+"/".length(), announce_url.indexOf(".htm"));
+		    annonce.setZz_identifiant(id);
+		    annonce.setZz_provider("leboncoin");
+		    annonce.setZz_status("OK");
+		    annouces.put("leboncoin_"+id, annonce);
 		}//while
 		
 		
@@ -157,11 +148,15 @@ public class LeboncoinWebHttpRequester implements WebHttpRequester {
 //		writer.close();
 	}
 
-
+	@Override
+	public void doRequest() throws JSONException {
+		doRequest(WebHttpRequester.DEFAULT_REQUEST_TEMPO);
+	}
 
 	@Override
-	public void getResult() {
-		// TODO Auto-generated method stub
+	public HashMap<String, AnnonceOccasionAuto> getResult() {
+		
+		return annouces;
 		
 	}
 }

@@ -1,33 +1,32 @@
 package fr.agilecom.webrequest.lacentrale;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.json.JSONException;
 
-import fr.agilecom.webrequest.AnnonceOccasionAuto;
 import fr.agilecom.webrequest.HttpUrlConnectionReader;
+import fr.agilecom.webrequest.WebHttpRequester;
+import fr.agilecom.webrequester.bean.AnnonceOccasionAuto;
 
-public class LaunchRequestLaCentrale {
+public class LaunchRequestLaCentrale implements WebHttpRequester {
 
-	public static void main(String[] args) throws Exception {
-
-		String output_file = "result_lacentrale.out";
+	HashMap<String, AnnonceOccasionAuto> annouces = new HashMap<String, AnnonceOccasionAuto>();
+	
+	@Override
+	public void doRequest(int tempo) throws JSONException {
 		
-		if(args.length >= 1) {
-			output_file=args[0];
-		}
 		String htmlpage=null;
 		
-		String[] pages = new String[2];
+		String[] pages = new String[4];
 		//String[] pages = new String[6];
 		pages[0]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=1";
 		pages[1]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=2";
-//		pages[2]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=3";
-//		pages[3]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=4";
+		pages[2]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=3";
+		pages[3]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=4";
 //		pages[4]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=5";
 //		pages[5]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=6";
 		
@@ -53,15 +52,12 @@ public class LaunchRequestLaCentrale {
 		Pattern pattern = null;
 		Matcher matcher = null;
 		
-		PrintWriter writer = new PrintWriter(output_file);
-		@SuppressWarnings("unused")
-		String test_printCsvHeader=AnnonceOccasionAuto.printCsvHeader();
-		writer.println(AnnonceOccasionAuto.printCsvHeader());
-		
 		while(it_urls.hasNext()){
 			
 			// Anti DOS FW security :
-			Thread.sleep(500);
+			try {
+				Thread.sleep(tempo*5);
+			} catch (InterruptedException e1) {	}
 			
 			AnnonceOccasionAuto annonce = new AnnonceOccasionAuto();
 			String announce_url = it_urls.next();
@@ -70,7 +66,6 @@ public class LaunchRequestLaCentrale {
 			String vendor_info=null;
 			
 			htmlAnnouce = simpleHttp.read(announce_url, false);
-			//System.out.println(annouce);
 			
 			// recuperation Marque / modele : via l'appel a credit
 			try{
@@ -80,7 +75,7 @@ public class LaunchRequestLaCentrale {
 						).trim();
 				
 			}catch(Exception e){
-				writer.println("Format XML (general_info) non attendu. URL : " + announce_url);
+				annonce.setZz_status("Format XML (general_info) non attendu. URL : " + announce_url);
 				continue;
 			}			
 			String marque = credit_info.substring(
@@ -107,7 +102,7 @@ public class LaunchRequestLaCentrale {
 								
 						);
 			}catch(Exception e){
-				writer.println("Format XML (general_info) non attendu. URL : " + announce_url);
+				annonce.setZz_status("Format XML (general_info) non attendu. URL : " + announce_url);
 				continue;
 			}				
 			pattern = Pattern.compile(".*<span class=\"f12\">(.*)</span>.*"
@@ -129,12 +124,10 @@ public class LaunchRequestLaCentrale {
 						).trim();
 				
 			}catch(Exception e){
-				writer.println("Format XML (general_info) non attendu. URL : " + announce_url);
+				annonce.setZz_status("Format XML (general_info) non attendu. URL : " + announce_url);
 				continue;
 			}
-			
-			//System.out.println(general_info);
-			
+						
 			pattern = Pattern.compile(".*hiddenOverflow.*"
 					+ "<h4>Ann.*</h4>.*<p>(.*)</p>.*"								//1
 					+ "<h4>Kilom.*</h4>.*<p>(.*)</p>.*"								//2
@@ -151,17 +144,6 @@ public class LaunchRequestLaCentrale {
 			matcher = pattern.matcher(general_info);
 			
 			if(matcher.matches()){
-//				System.out.println("Annee : " + matcher.group(1).trim());
-//				System.out.println("Kilometrage : " + matcher.group(2).trim());
-//				System.out.println("Nombre de portes : " + matcher.group(3).trim());
-//				System.out.println("Puissance fiscale : " + matcher.group(4).trim());
-//				System.out.println("Puissance din : " + matcher.group(5).trim());
-//				System.out.println("Boite de vitesse : " + matcher.group(6).trim());
-//				System.out.println("Energie : " + matcher.group(7).trim());
-//				System.out.println("Mise en circulation : " + matcher.group(8).trim());
-//				System.out.println("Couleur intérieure : " + matcher.group(9).trim());
-//				System.out.println("Couleur extérieure : " + matcher.group(10).trim());
-//				System.out.println("Premiere main : " + matcher.group(11).trim());
 				
 				annonce.setAnneeMiseEnCirculation(matcher.group(1).trim());
 				annonce.setKilometrage( matcher.group(2).trim());
@@ -182,18 +164,30 @@ public class LaunchRequestLaCentrale {
 				annonce.setTypeboite(matcher.group(6).trim());
 				annonce.setVendeur(vendor);
 				annonce.setVille("");
-				
-				String csv_line = annonce.toCsvFormat();
-				writer.println(StringEscapeUtils.unescapeHtml4(csv_line));
-				
+								
 			}else{
-				writer.println("Format XML (general_info) non attendu. URL : " + announce_url);
+				annonce.setZz_status("Format XML (general_info) non attendu. URL : " + announce_url);
 				continue;
 			}
-			writer.flush();
+			
+		    String id = announce_url.substring(announce_url.lastIndexOf("auto-occasion-annonce-")+"auto-occasion-annonce-".length(), announce_url.indexOf(".htm"));
+		    annonce.setZz_identifiant(id);
+		    annonce.setZz_provider("lacentrale");
+		    annonce.setZz_status("OK");
+		    annouces.put("lacentrale_"+id, annonce);
+		    
 		}// while 
-		
-		writer.close();		
+	}
+
+	@Override
+	public void doRequest() throws JSONException {
+		doRequest(WebHttpRequester.DEFAULT_REQUEST_TEMPO);
+	}
+
+	@Override
+	public HashMap<String, AnnonceOccasionAuto> getResult() {
+		// TODO Auto-generated method stub
+		return annouces;
 	}
 
 }

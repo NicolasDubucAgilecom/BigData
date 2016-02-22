@@ -1,4 +1,4 @@
-package fr.agilecom.webrequest;
+package fr.agilecom.webrequester.bean;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -30,6 +30,8 @@ public class AnnonceOccasionAuto {
 	String vendeur = null;
 	String typeboite = null;
 	String ville = null;
+	String zz_identifiant = null;
+	String zz_provider = null;
 	String zz_status = null;
 	
 	public String getAnneeMiseEnCirculation() {
@@ -194,6 +196,18 @@ public class AnnonceOccasionAuto {
 		return_str = StringEscapeUtils.unescapeHtml4(return_str);
 		
 		return return_str;
+	}
+	public String getZz_identifiant() {
+		return zz_identifiant;
+	}
+	public void setZz_identifiant(String zz_identifiant) {
+		this.zz_identifiant = zz_identifiant;
+	}
+	public String getZz_provider() {
+		return zz_provider;
+	}
+	public void setZz_provider(String zz_provider) {
+		this.zz_provider = zz_provider;
 	}
 	public String getZz_status() {
 		return zz_status;
