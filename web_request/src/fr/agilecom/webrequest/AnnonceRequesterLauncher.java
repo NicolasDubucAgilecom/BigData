@@ -95,7 +95,7 @@ public class AnnonceRequesterLauncher {
 		int http_request_tempo = Integer.parseInt(props.getProperty("http_request_tempo"));
 		
 		String[] sites_list = sites.split(",");
-		String output_type = props.getProperty("output_type");//TODO : manage all types
+//		String output_type = props.getProperty("output_type");//TODO : manage all types
 		
 		
 		// Do requests to site. Request all site define bu id in properties file .. 

@@ -186,9 +186,9 @@ public class AnnonceOccasionAuto {
 			for(Field field : clz.getDeclaredFields()){
 				
 				String method = "get" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
-				Method mth = clz.getMethod(method, null);
+				Method mth = clz.getMethod(method, Method.class);
 				
-				String result = (String)mth.invoke(this, null);
+				String result = (String)mth.invoke(this, String.class);
 				if(return_str==null){
 					return_str=result;
 				}else{
