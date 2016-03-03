@@ -6,27 +6,31 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 
-import fr.agilecom.webrequest.HttpUrlConnectionReader;
-import fr.agilecom.webrequest.WebHttpRequester;
+import fr.agilecom.webrequest.AnnonceRequesterLauncher;
 import fr.agilecom.webrequester.bean.AnnonceOccasionAuto;
+import fr.agilecom.webrequester.core.HttpUrlConnectionReader;
+import fr.agilecom.webrequester.core.WebHttpRequester;
 
 public class LaunchRequestLaCentrale implements WebHttpRequester {
 
 	HashMap<String, AnnonceOccasionAuto> annouces = new HashMap<String, AnnonceOccasionAuto>();
+	HashMap<String, AnnonceOccasionAuto> annouces_old = new HashMap<String, AnnonceOccasionAuto>();
+	static Logger log = Logger.getLogger(AnnonceRequesterLauncher.class.getName());
 	
 	@Override
 	public void doRequest(int tempo) throws JSONException {
 		
 		String htmlpage=null;
-		
-		String[] pages = new String[4];
+		annouces = new HashMap<String, AnnonceOccasionAuto>();
+		String[] pages = new String[3];
 		//String[] pages = new String[6];
 		pages[0]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=1";
 		pages[1]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=2";
 		pages[2]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=3";
-		pages[3]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=4";
+//		pages[3]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=4";
 //		pages[4]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=5";
 //		pages[5]="http://www.lacentrale.fr/listing_auto.php?SS_CATEGORIE=40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49&marque=&modele=&prix_maxi=&energie=&cp=&num=6";
 		
@@ -45,6 +49,8 @@ public class LaunchRequestLaCentrale implements WebHttpRequester {
 				
 			}
 		}
+		
+		boolean found_old_annouce=false;
 		
 		// Parse all annouces :
 		Iterator<String> it_urls = urls_annouce.iterator();
@@ -171,13 +177,34 @@ public class LaunchRequestLaCentrale implements WebHttpRequester {
 			}
 			
 		    String id = announce_url.substring(announce_url.lastIndexOf("auto-occasion-annonce-")+"auto-occasion-annonce-".length(), announce_url.indexOf(".htm"));
+		    
+		    if(annouces_old.containsKey("lacentrale_"+id)){
+		    	found_old_annouce=true;
+		    	log.info("Stopping criteraia matches ! Annouce id has already found in previous main loop ! (" + id + ")");
+		    	break;
+		    }
+		    
 		    annonce.setZz_identifiant(id);
 		    annonce.setZz_provider("lacentrale");
 		    annonce.setZz_status("OK");
 		    annouces.put("lacentrale_"+id, annonce);
 		    
+		    log.debug("Annonce : " + id + " => " +  annonce.toCsvFormat());
 		}// while 
-	}
+		
+		// Clear old annouce_old (saved annouce), if:
+		// If old annouce has not been found => mean that we can reset old with current checked annouces
+		// OR if annouces_old is to big we need to clear it
+		if(found_old_annouce || annouces_old.size() > 500){
+			// if there are current annouces, if not old_annouces can be empty :
+			if(annouces.size() > 0){
+				annouces_old=new HashMap<String, AnnonceOccasionAuto>();
+				annouces_old.putAll(annouces);
+			}
+		}else
+			// simply put current annouces to old annouces :
+			annouces_old.putAll(annouces);
+		}
 
 	@Override
 	public void doRequest() throws JSONException {
@@ -189,5 +216,4 @@ public class LaunchRequestLaCentrale implements WebHttpRequester {
 		// TODO Auto-generated method stub
 		return annouces;
 	}
-
 }

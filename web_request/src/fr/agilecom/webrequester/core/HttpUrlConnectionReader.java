@@ -1,11 +1,16 @@
-package fr.agilecom.webrequest;
+package fr.agilecom.webrequester.core;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import org.apache.log4j.Logger;
+
+import fr.agilecom.webrequest.AnnonceRequesterLauncher;
 
 /**
  *
@@ -17,6 +22,7 @@ import java.net.URL;
  */
 public class HttpUrlConnectionReader
 {
+	static Logger log = Logger.getLogger(AnnonceRequesterLauncher.class.getName());
 	
 	public String read(String desiredUrl, boolean markLF){
 	  
@@ -77,8 +83,17 @@ public class HttpUrlConnectionReader
 	    	// Cookies management :
 	    	
 	    	// read the output from the server
-	    	is = connection.getInputStream();
+	    	try{
+	    		is = connection.getInputStream();
+	    		
+	    		// Web page unreachable
+	    	}catch(FileNotFoundException e){
+	    		log.error("Unreachable url : '" + desiredUrl + 
+	    				"'. (" + e.getMessage() + (" / " + e.getCause()!=null?e.getCause().getMessage():""));
+	    		return null;
+	    	}
 	    	if(connection.getResponseCode() >= 400){
+	    	
 	    		
 	    		System.out.println("HTTP Error code detected !!!!!!!!!!!!!!");
 	    		return null;

@@ -1,4 +1,4 @@
-package fr.agilecom.webrequest;
+package fr.agilecom.webrequester.core;
 
 import java.util.HashMap;
 

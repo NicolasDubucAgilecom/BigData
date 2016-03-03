@@ -2,6 +2,7 @@ package fr.agilecom.webrequester.bean;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Date;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -11,14 +12,15 @@ import org.apache.commons.lang3.StringEscapeUtils;
  *
  */
 public class AnnonceOccasionAuto {
-	
+	// TODO add insert date and announce date...
 	String anneeMiseEnCirculation = null;
 	String caburant = null; // type motorisation
 	String codePostal = null;
 	String couleur_interieure = null;
 	String couleur_exterieure = null;
 	String departement = null;
-	String description = null;
+	String description = "";
+	String insert_date = null;
 	String kilometrage = null;
 	String marque = null;
 	String modele = null;
@@ -75,6 +77,11 @@ public class AnnonceOccasionAuto {
 	}
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	public String getInsert_date() {
+		Date date = new Date();
+		String date_str = date.toString();
+		return (date_str);
 	}
 	public String getKilometrage() {
 		return kilometrage;
