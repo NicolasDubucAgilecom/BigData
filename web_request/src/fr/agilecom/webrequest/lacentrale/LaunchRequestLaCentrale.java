@@ -21,7 +21,7 @@ public class LaunchRequestLaCentrale implements WebHttpRequester {
 	static Logger log = Logger.getLogger(AnnonceRequesterLauncher.class.getName());
 	
 	@Override
-	public void doRequest(int tempo) throws JSONException {
+	public boolean doRequest(int tempo) throws JSONException {
 		
 		String htmlpage=null;
 		annouces = new HashMap<String, AnnonceOccasionAuto>();
@@ -40,6 +40,11 @@ public class LaunchRequestLaCentrale implements WebHttpRequester {
 		for(String page : pages){
 
 			htmlpage=simpleHttp.read(page,false);
+			
+			if(htmlpage.contains("Error 42")){
+				log.error("Error 42 detected !!!!!!!!!!!!! We have been ban from lacentrale");
+				return false;
+			}
 			String[] heap_annouce = htmlpage.split("<a href=.\\/auto-occasion-annonce-");
 			
 			for(int i=1; i < heap_annouce.length ; i++){
@@ -201,14 +206,16 @@ public class LaunchRequestLaCentrale implements WebHttpRequester {
 				annouces_old=new HashMap<String, AnnonceOccasionAuto>();
 				annouces_old.putAll(annouces);
 			}
-		}else
+		}else{
 			// simply put current annouces to old annouces :
 			annouces_old.putAll(annouces);
 		}
+		return true;
+	}
 
 	@Override
-	public void doRequest() throws JSONException {
-		doRequest(WebHttpRequester.DEFAULT_REQUEST_TEMPO);
+	public boolean doRequest() throws JSONException {
+		return doRequest(WebHttpRequester.DEFAULT_REQUEST_TEMPO);
 	}
 
 	@Override

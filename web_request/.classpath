@@ -5,5 +5,7 @@
 	<classpathentry kind="lib" path="lib/javax.servlet-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/java-json.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang3-3.4.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="C:/Users/buboc/git/BigData/web_request"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

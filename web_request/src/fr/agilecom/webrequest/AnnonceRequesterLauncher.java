@@ -19,6 +19,11 @@ public class AnnonceRequesterLauncher {
 	
 	final static String FLOW_MODE = "flow";
 	final static String BATCH_MODE = "batch";
+	final static String FILE_TYPE = "file";
+	final static String DEFAULT_OUT_TYPE = FILE_TYPE;
+	final static String FILE_FORMAT_CSV = "csv";
+	final static String FILE_FORMAT_JSON = "json";
+	final static String DEFAULT_OUT_FORMAT = FILE_FORMAT_CSV;
 	final static String OUT_FILE_CSV = "annonces.csv.out";
 	final static int FLOW_MODE_TEMPO_DEFALUT = 240;
 	
@@ -31,7 +36,7 @@ public class AnnonceRequesterLauncher {
 		// Variables initializationds :
 		boolean run=false;
 		int flow_mode_tempo=FLOW_MODE_TEMPO_DEFALUT;
-		String out_file="annonces.out.csv";
+		String out_file="annonces.out";
 		File fRun = new File("run");
 		
 		if(fRun.exists()){
@@ -40,7 +45,7 @@ public class AnnonceRequesterLauncher {
 				
 			} catch (Exception e) {
 				log.fatal("File 'run' file cannot be deleted : '" + fRun.getAbsolutePath() + "'");
-				log.info("Please delete it manually...");
+				log.info("Please delete run file manually...");
 				throw new Exception("File 'run' file cannot be deleted : '" + fRun.getAbsolutePath() + "'");
 			} 
 		}
@@ -95,8 +100,26 @@ public class AnnonceRequesterLauncher {
 		int http_request_tempo = Integer.parseInt(props.getProperty("http_request_tempo"));
 		
 		String[] sites_list = sites.split(",");
-//		String output_type = props.getProperty("output_type");//TODO : manage all types
 		
+		// Output definition :
+		String output_type = props.getProperty("output_type");
+		String output_format = null;
+		if(output_type!="file"){
+			output_type=DEFAULT_OUT_TYPE;
+		}
+		if(output_type.equals(FILE_TYPE)){
+			output_format = props.getProperty("output_format");
+			
+			if(output_format==null){
+				output_format=DEFAULT_OUT_FORMAT;
+				log.warn("'output_format' has not been defeine : use defaut format : '" + DEFAULT_OUT_FORMAT +"'.");
+			}
+			
+			if(!output_format.equals(FILE_FORMAT_CSV) && !output_format.equals(FILE_FORMAT_JSON)){
+				log.fatal("Bad output file format. output_format value can be '" + FILE_FORMAT_CSV + "' or '" + FILE_FORMAT_JSON +"'.");
+				throw new Exception("Bad output file format. output_format value can be '" + FILE_FORMAT_CSV + "' or '" + FILE_FORMAT_JSON +"'.");
+			}
+		}
 		
 		// Do requests to site. Request all site define bu id in properties file .. 
 		WebHttpRequester leboncoin_requeter = null;
@@ -118,7 +141,7 @@ public class AnnonceRequesterLauncher {
 			log.warn("Properties 'out_file' has not been set : use default value : " + OUT_FILE_CSV);
 			out_file=OUT_FILE_CSV;
 		}
-		File fOutFile = new File(out_file);
+		File fOutFile = new File(out_file+"."+output_format);
 		boolean printHeader = !fOutFile.exists();
 		
 		PrintWriter pw = new PrintWriter(new FileOutputStream(
@@ -182,8 +205,14 @@ public class AnnonceRequesterLauncher {
 			
 			while(ita.hasNext()){
 				annonce = annonces.get(ita.next());
-				pw.println(annonce.toCsvFormat());
-				pw.flush();
+				if(output_format.equals(FILE_FORMAT_CSV)){
+					pw.println(annonce.toCsvFormat());
+					pw.flush();
+				}else if(output_format.equals(FILE_FORMAT_JSON)){
+					String json_out = annonce.toJSONObject().toString();
+					pw.println(json_out);
+					pw.flush();
+				}
 			}
 			
 			//After write, reset it :
@@ -211,6 +240,15 @@ public class AnnonceRequesterLauncher {
 		log.info("Output file Writed. Closing it...");
 		pw.close();
 		log.info("Output file closed");
+		
+		if(fRun.exists()){
+			try{
+				fRun.delete();
+				
+			} catch (Exception e) {
+				log.fatal("File 'run' file cannot be deleted : '" + fRun.getAbsolutePath() + "'");
+			} 
+		}
 	}
 	
 	static boolean isRunning(){

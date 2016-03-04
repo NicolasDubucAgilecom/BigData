@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.json.JSONObject;
 
 /**
  * 
@@ -150,6 +151,24 @@ public class AnnonceOccasionAuto {
 		this.ville = ville;
 	}
 	
+	public String getZz_identifiant() {
+		return zz_identifiant;
+	}
+	public void setZz_identifiant(String zz_identifiant) {
+		this.zz_identifiant = zz_identifiant;
+	}
+	public String getZz_provider() {
+		return zz_provider;
+	}
+	public void setZz_provider(String zz_provider) {
+		this.zz_provider = zz_provider;
+	}
+	public String getZz_status() {
+		return zz_status;
+	}
+	public void setZz_status(String zz_status) {
+		this.zz_status = zz_status;
+	}
 	public static String printCsvHeader(){
 
 		String return_str = null;
@@ -186,9 +205,9 @@ public class AnnonceOccasionAuto {
 			for(Field field : clz.getDeclaredFields()){
 				
 				String method = "get" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
-				Method mth = clz.getMethod(method, Method.class);
+				Method mth = clz.getMethod(method);
 				
-				String result = (String)mth.invoke(this, String.class);
+				String result = (String)mth.invoke(this);
 				if(return_str==null){
 					return_str=result;
 				}else{
@@ -204,22 +223,32 @@ public class AnnonceOccasionAuto {
 		
 		return return_str;
 	}
-	public String getZz_identifiant() {
-		return zz_identifiant;
-	}
-	public void setZz_identifiant(String zz_identifiant) {
-		this.zz_identifiant = zz_identifiant;
-	}
-	public String getZz_provider() {
-		return zz_provider;
-	}
-	public void setZz_provider(String zz_provider) {
-		this.zz_provider = zz_provider;
-	}
-	public String getZz_status() {
-		return zz_status;
-	}
-	public void setZz_status(String zz_status) {
-		this.zz_status = zz_status;
+	
+	public JSONObject toJSONObject(){
+		
+		JSONObject json = new JSONObject();
+		Class<?> clz;
+		
+		String key = null;
+		String value = null;
+		
+		try {
+			clz = Class.forName(this.getClass().getName());
+
+			for(Field field : clz.getDeclaredFields()){
+				
+				key = field.getName();
+				String method = "get" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
+				Method mth = clz.getMethod(method);
+				
+				value = (String)mth.invoke(this);
+
+				json.put(key, value);
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		
+		return json;
 	}
 }

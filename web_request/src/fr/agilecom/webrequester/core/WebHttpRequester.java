@@ -9,8 +9,8 @@ import fr.agilecom.webrequester.bean.AnnonceOccasionAuto;
 public interface WebHttpRequester {
 	
 	public static int DEFAULT_REQUEST_TEMPO = 500;
-	public void doRequest()  throws JSONException ;
-	public void doRequest(int tempo)  throws JSONException ;
+	public boolean doRequest()  throws JSONException ;
+	public boolean doRequest(int tempo)  throws JSONException ;
 	public HashMap<String, AnnonceOccasionAuto> getResult();
 	
 }
